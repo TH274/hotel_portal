@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="portal_menu_items" inherit_id="portal.portal_sidebar">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <a href="/my/bookings" class="btn btn-link">My Bookings</a>
+            <a href="/my/rooms" class="btn btn-link">Available Rooms</a>
+        </xpath>
+    </template>
+
+    <template id="portal_my_rooms" name="Available Rooms">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Available Rooms</t>
+            <div class="container">
+                <div class="row mt16">
+                    <div class="col-12">
+                        <h2>Available Rooms</h2>
+                        <div class="card-deck">
+                            <t t-foreach="rooms" t-as="room">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Room #<t t-esc="room.room_number" /></h5>
+                                        <p class="card-text"> Type: <t t-esc="room.room_type" /><br />
+                                            Price: <t t-esc="room.price" /> per night<br />
+                                            Capacity: <t t-esc="room.capacity" /> person(s) </p>
+                                        <a t-att-href="'/room/book?room_id=%s' % room.id"
+                                            class="btn btn-primary">
+                                            Book Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_form" name="Booking Form">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Book Room</t>
+            <div class="container">
+                <form method="post" action="/room/confirm" id="booking-form">
+                    <input type="hidden" name="room_id" t-att-value="room.id" />
+
+                    <!-- Room Details -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Room Details</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Check-in Date</label>
+                                        <input type="date" name="check_in" class="form-control"
+                                            t-att-min="min_date" required="required" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Check-out Date</label>
+                                        <input type="date" name="check_out" class="form-control"
+                                            t-att-min="min_date" required="required" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services Section -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4>Additional Services</h4>
+                            <button type="button" class="btn btn-sm btn-secondary" id="add-service">
+                                <i class="fa fa-plus"></i> Add Service </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="services-list">
+                                <!-- Service template (hidden) -->
+                                <div class="service-row template d-none">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <select name="service_product_id"
+                                                class="form-control service-product">
+                                                <option value="">Select Service</option>
+                                                <t t-foreach="available_services" t-as="service">
+                                                    <option t-att-value="service.id">
+                                                        <t t-esc="service.name" />
+                                                    </option>
+                                                </t>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="number" name="quantity"
+                                                class="form-control" min="1" value="1"
+                                                placeholder="Quantity" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button"
+                                                class="btn btn-danger btn-block remove-service">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg">Confirm Booking</button>
+                </form>
+            </div>
+
+            <script>
+            <![CDATA[
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('add-service').addEventListener('click', function() {
+                    const template = document.querySelector('.service-row.template');
+                    const clone = template.cloneNode(true);
+                    clone.classList.remove('template', 'd-none');
+                    clone.querySelectorAll('select, input').forEach(function(el) {
+                        el.name = el.name + '[]';
+                    });
+                    document.getElementById('services-list').appendChild(clone);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.remove-service')) {
+                        e.target.closest('.service-row').remove();
+                    }
+                });
+            });
+            ]]>
+        </script>
+        </t>
+    </template>
+
+    <template id="portal_my_bookings" name="My Bookings">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">My Bookings</t>
+            <div class="container">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="bookings" t-as="booking">
+                            <tr>
+                                <td>
+                                    <t t-esc="booking.room_id.room_number" />
+                                </td>
+                                <td>
+                                    <t t-esc="booking.check_in_date" />
+                                </td>
+                                <td>
+                                    <t t-esc="booking.check_out_date" />
+                                </td>
+                                <td>
+                                    <t t-esc="booking.status" />
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+</odoo>

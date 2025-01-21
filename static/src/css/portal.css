@@ -1,0 +1,10 @@
+.service-row {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.remove-service {
+    padding: 6px 12px;
+}
