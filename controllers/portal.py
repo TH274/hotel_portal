@@ -26,7 +26,7 @@ class HotelPortal(http.Controller):
     def book_room(self, **post):
         room = request.env['hotel.room'].sudo().browse(int(post.get('room_id')))
         services = request.env['product.product'].sudo().search([
-            ('available', '=', True),
+            ('sale_ok', '=', True),
             ('detailed_type', '=', 'product')
         ])
         return request.render("hotel_portal.booking_form", {

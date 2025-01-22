@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="portal_menu_items" inherit_id="portal.portal_sidebar">
-        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
-            <a href="/my/bookings" class="btn btn-link">My Bookings</a>
-            <a href="/my/rooms" class="btn btn-link">Available Rooms</a>
+    <template id="portal_menu_items" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[hasclass('o_portal_my_home')]" position="inside">
+            <!-- My Bookings -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Hotel Bookings</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="/my/bookings" class="btn btn-link list-group-item list-group-item-action">
+                            <i class="fa fa-calendar me-2"></i> My Bookings
+                        </a>
+                        <a href="/my/rooms" class="btn btn-link list-group-item list-group-item-action">
+                            <i class="fa fa-bed me-2"></i> Available Rooms
+                        </a>
+                    </div>
+                </div>
+            </div>
         </xpath>
     </template>
 
@@ -81,7 +95,7 @@
                                 <div class="service-row template d-none">
                                     <div class="row mb-3">
                                         <div class="col-md-6">
-                                            <select name="service_product_id"
+                                            <select name="service_product_id[]"
                                                 class="form-control service-product">
                                                 <option value="">Select Service</option>
                                                 <t t-foreach="available_services" t-as="service">
@@ -92,7 +106,7 @@
                                             </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="number" name="quantity"
+                                            <input type="number" name="quantity[]"
                                                 class="form-control" min="1" value="1"
                                                 placeholder="Quantity" />
                                         </div>
