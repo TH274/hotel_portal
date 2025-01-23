@@ -27,7 +27,7 @@ class HotelPortal(http.Controller):
         room = request.env['hotel.room'].sudo().browse(int(post.get('room_id')))
         services = request.env['product.product'].sudo().search([
             ('sale_ok', '=', True),
-            ('detailed_type', '=', 'product')
+            ('detailed_type', '=', 'service')
         ])
         return request.render("hotel_portal.booking_form", {
             'room': room,
@@ -44,25 +44,56 @@ class HotelPortal(http.Controller):
             'partner_id': request.env.user.partner_id.id,
             'hotel_id': room.hotel_id.id,
             'room_id': room.id,
+            'room_type':post.get('room_type'),
             'check_in_date': post.get('check_in'),
             'check_out_date': post.get('check_out'),
             'status': 'new',
         })
         
-        # Retrieve multi-value fields using request.httprequest.form
+        # Retrieve and validate service data
         service_product_ids = request.httprequest.form.getlist('service_product_id[]')
         quantities = request.httprequest.form.getlist('quantity[]')
-        
-        service_data = zip(service_product_ids, quantities)
-        
+
+        service_data = []
+        for product_id, quantity in zip(service_product_ids, quantities):
+            if not product_id or not quantity:
+                continue
+            try:
+                product_id = int(product_id)
+                quantity = float(quantity)
+                if quantity <= 0:
+                    raise ValueError("Quantity must be positive")
+                service_data.append((product_id, quantity))
+            except (ValueError, TypeError) as e:
+                _logger.error("Invalid service data: product_id=%s, quantity=%s. Error: %s", 
+                            product_id, quantity, str(e))
+                continue
+
+        # Create service lines
         for product_id, quantity in service_data:
-            if product_id and quantity:
-                product = request.env['product.product'].sudo().browse(int(product_id))
-                request.env['hotel.service.line'].sudo().create({
-                    'customer_id': booking.id,
-                    'product_id': product.id,
-                    'quantity': float(quantity),
-                    'price_unit': product.lst_price,
-                })
-        
+            product = request.env['product.product'].sudo().browse(product_id)
+            if product.detailed_type != 'service':
+                _logger.warning("Product %s is not a service. Skipping.", product.name)
+                continue
+
+            request.env['hotel.service.line'].sudo().create({
+                'customer_id': booking.id,
+                'product_id': product.id,
+                'quantity': quantity,
+                'price_unit': product.lst_price,
+            })
+            _logger.info("Added service %s (Qty: %s) to booking %s", product.name, quantity, booking.id)
+
         return request.redirect('/my/bookings')
+
+    @http.route('/my/booking/<int:booking_id>', type='http', auth="user", website=True)
+    def portal_booking_details(self, booking_id, **kw):
+        booking = request.env['hotel.customer'].sudo().browse(booking_id)
+        # Ensure the booking belongs to the current user
+        if booking.partner_id != request.env.user.partner_id:
+            return request.redirect('/my/bookings')
+        return request.render("hotel_portal.portal_my_booking_details", {
+            'booking': booking,
+            'services': booking.service_line_ids,
+            'page_name': 'booking_details',
+        })

@@ -9,12 +9,12 @@
                         <h5 class="mb-0">Hotel Bookings</h5>
                     </div>
                     <div class="card-body">
-                        <a href="/my/bookings" class="btn btn-link list-group-item list-group-item-action">
-                            <i class="fa fa-calendar me-2"></i> My Bookings
-                        </a>
-                        <a href="/my/rooms" class="btn btn-link list-group-item list-group-item-action">
-                            <i class="fa fa-bed me-2"></i> Available Rooms
-                        </a>
+                        <a href="/my/bookings"
+                            class="btn btn-link list-group-item list-group-item-action">
+                            <i class="fa fa-calendar me-2"></i> My Bookings </a>
+                        <a href="/my/rooms"
+                            class="btn btn-link list-group-item list-group-item-action">
+                            <i class="fa fa-bed me-2"></i> Available Rooms </a>
                     </div>
                 </div>
             </div>
@@ -128,26 +128,24 @@
             </div>
 
             <script>
-            <![CDATA[
-            document.addEventListener('DOMContentLoaded', function() {
+                document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('add-service').addEventListener('click', function() {
-                    const template = document.querySelector('.service-row.template');
-                    const clone = template.cloneNode(true);
-                    clone.classList.remove('template', 'd-none');
-                    clone.querySelectorAll('select, input').forEach(function(el) {
-                        el.name = el.name + '[]';
-                    });
-                    document.getElementById('services-list').appendChild(clone);
+                const template = document.querySelector('.service-row.template');
+                const clone = template.cloneNode(true);
+                clone.classList.remove('template', 'd-none');
+                clone.querySelectorAll('select, input').forEach(function(el) {
+                el.name = el.name + '[]';
+                });
+                document.getElementById('services-list').appendChild(clone);
                 });
 
                 document.addEventListener('click', function(e) {
-                    if (e.target.closest('.remove-service')) {
-                        e.target.closest('.service-row').remove();
-                    }
+                if (e.target.closest('.remove-service')) {
+                e.target.closest('.service-row').remove();
+                }
                 });
-            });
-            ]]>
-        </script>
+                });
+            </script>
         </t>
     </template>
 
@@ -168,7 +166,9 @@
                         <t t-foreach="bookings" t-as="booking">
                             <tr>
                                 <td>
-                                    <t t-esc="booking.room_id.room_number" />
+                                    <a t-att-href="'/my/booking/%s' % booking.id">
+                                        <t t-esc="booking.room_id.room_number" />
+                                    </a>
                                 </td>
                                 <td>
                                     <t t-esc="booking.check_in_date" />
@@ -183,6 +183,68 @@
                         </t>
                     </tbody>
                 </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_booking_details" name="Booking Details">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Booking Details</t>
+            <div class="container">
+                <div class="row mt16">
+                    <div class="col-12">
+                        <h2>Booking #<t t-esc="booking.booking_code" /></h2>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4>Room Information</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>Room Number: <t t-esc="booking.room_id.room_number" /></p>
+                                <p>Room Type: <t t-esc="booking.room_id.room_type" /></p>
+                                <p>Check-in: <t t-esc="booking.check_in_date" /></p>
+                                <p>Check-out: <t t-esc="booking.check_out_date" /></p>
+                                <p>Status: <t t-esc="booking.status" /></p>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4>Additional Services</h4>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="services" t-as="service">
+                                            <tr>
+                                                <td>
+                                                    <t t-esc="service.product_id.name" />
+                                                </td>
+                                                <td>
+                                                    <t t-esc="service.quantity" />
+                                                </td>
+                                                <td>
+                                                    <t t-esc="service.price_unit" />
+                                                </td>
+                                                <td>
+                                                    <t t-esc="service.total_cost" />
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <a href="/my/bookings" class="btn btn-primary">Back to Bookings</a>
+                    </div>
+                </div>
             </div>
         </t>
     </template>
